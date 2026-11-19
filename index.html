@@ -1,0 +1,1310 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sistema Cell</title>
+<link rel="icon" type="image/svg+xml" href="marca/favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="marca/favicon-32.png">
+<link rel="apple-touch-icon" href="marca/apple-touch-icon.png">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Sistema de gestão para assistência técnica de celular: ordens de serviço, PDV, estoque, caixa, relatórios, ponto da equipe e aviso no celular do dono.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap">
+<style>
+/* Layout: faixas escuras de borda a borda, conteúdo em coluna de 1180px. Hero texto | vitrine (janela do sistema + celular com o aviso).
+   Demonstrações numa "janela do sistema" com abas; módulos em linhas com rótulo mono; planos lado a lado.
+   Visual da marca do próprio sistema (azul-marinho + laranja, Geist), tema escuro de propósito, como o app. */
+:root {
+  --bg: #060f24;
+  --bg-2: #081430;
+  --bg-vidro: rgba(6, 15, 36, 0.86);
+  --panel: #0d1b3d;
+  --panel-2: #112450;
+  --panel-3: #18306a;
+  --line: rgba(160, 180, 230, 0.12);
+  --line-2: rgba(160, 180, 230, 0.24);
+  --fg: #f3f6fc;
+  --fg-2: #aab5d1;
+  --fg-3: #7684a6;
+  --accent: #ff6b35;
+  --accent-2: #ff8a5c;
+  --accent-ink: #1c0b03;
+  --accent-soft: rgba(255, 107, 53, 0.14);
+  --ok: #10b981;
+  --ok-soft: rgba(16, 185, 129, 0.14);
+  --warn: #f59e0b;
+  --bad: #ef4444;
+  --bad-soft: rgba(239, 68, 68, 0.14);
+  --info: #3b82f6;
+  --st-orcamento: #8b95b5;
+  --st-aprovacao: #f59e0b;
+  --st-conserto: #3b82f6;
+  --st-peca: #a855f7;
+  --st-pronto: #10b981;
+  --st-entregue: #14b8a6;
+  --tg-fundo: #0e1621;
+  --tg-topo: #17212b;
+  --tg-msg: #182533;
+  --tg-botao: #1f2f3f;
+  --tg-azul: #6ab3f3;
+  --fone-borda: #1b2333;
+  --sombra: 0 24px 60px rgba(0, 0, 0, 0.45);
+
+  --f-display: "Bricolage Grotesque", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --f-body: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-mono: "Geist Mono", ui-monospace, "SF Mono", Consolas, "Liberation Mono", monospace;
+
+  --max: 1180px;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+[hidden] { display: none !important; }
+img { max-width: 100%; }
+a { color: inherit; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; border-radius: 6px; }
+
+.wrap {
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 {
+  font-family: var(--f-display);
+  font-weight: 760;
+  font-size: clamp(2.3rem, 1.3rem + 3.8vw, 4.15rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+h1 em { font-style: normal; color: var(--accent); }
+h2 {
+  font-family: var(--f-display);
+  font-weight: 720;
+  font-size: clamp(1.7rem, 1.15rem + 2.1vw, 2.65rem);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+}
+h3 { font-size: 1.08rem; font-weight: 620; line-height: 1.3; }
+p { margin: 0; }
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+}
+.lead { font-size: clamp(1.05rem, 1rem + 0.3vw, 1.2rem); color: var(--fg-2); max-width: 34em; }
+.mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--fg-3); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5em;
+  padding: 0.78em 1.2em; border-radius: 10px; border: 1px solid transparent;
+  font-weight: 600; font-size: 15px; text-decoration: none; cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn-pri { background: var(--accent); color: var(--accent-ink); }
+.btn-pri:hover { background: var(--accent-2); }
+.btn-sec { background: transparent; color: var(--fg); border-color: var(--line-2); }
+.btn-sec:hover { border-color: var(--fg-3); }
+.btn-peq { padding: 0.45em 0.75em; font-size: 13px; border-radius: 8px; }
+.btn[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+.secao { padding-block: clamp(64px, 8vw, 112px); border-top: 1px solid var(--line); }
+.secao-cab { display: grid; gap: 14px; max-width: 46rem; margin-bottom: clamp(28px, 4vw, 48px); }
+
+/* ── Topo ─────────────────────────────────────────────── */
+.topo {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30;
+  background: var(--bg-vidro);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.topo .wrap { display: flex; align-items: center; gap: 24px; min-height: 64px; }
+.logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 650; letter-spacing: -0.01em; }
+.logo-marca { display: block; width: 34px; height: 34px; }
+.logo-nome { font-family: var(--f-display); font-size: 22px; font-weight: 500; letter-spacing: -0.035em; line-height: 1; }
+.logo-nome b { font-weight: 800; color: #ff6b35; }
+.menu { display: flex; gap: 22px; margin-left: auto; font-size: 14px; color: var(--fg-2); }
+.menu a { text-decoration: none; }
+.menu a:hover { color: var(--fg); }
+@media (max-width: 860px) { .menu { display: none; } .topo .btn { margin-left: auto; } }
+
+/* ── Hero ─────────────────────────────────────────────── */
+.hero { padding-block: clamp(40px, 6vw, 84px) clamp(56px, 7vw, 96px); }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 64px); align-items: center; }
+.hero-texto { display: grid; gap: 22px; }
+.ctas { display: flex; flex-wrap: wrap; gap: 10px; }
+.hero-fatos { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; color: var(--fg-2); }
+.hero-fatos li { display: flex; align-items: center; gap: 8px; }
+.hero-fatos li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+@media (max-width: 900px) { .hero-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.vitrine { display: grid; grid-template-columns: minmax(0, 1fr); }
+.janela {
+  background: var(--panel); border: 1px solid var(--line-2); border-radius: 16px;
+  box-shadow: var(--sombra); overflow: hidden;
+}
+.janela-barra {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+  background: var(--bg-2); border-bottom: 1px solid var(--line); font-size: 12.5px; color: var(--fg-3);
+}
+.bolinhas { display: flex; gap: 6px; }
+.bolinhas i { width: 10px; height: 10px; border-radius: 50%; background: var(--line-2); display: block; }
+.janela-titulo { font-weight: 500; color: var(--fg-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.etiqueta {
+  margin-left: auto; flex-shrink: 0; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line-2); color: var(--fg-3);
+}
+.vitrine .janela { grid-area: 1 / 1; align-self: start; width: calc(100% - 56px); }
+.mini-quadro { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 12px; }
+.mini-col { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px; display: grid; gap: 6px; align-content: start; min-height: 230px; }
+.mini-col header { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--fg-2); font-weight: 600; padding: 2px 2px 4px; }
+.mini-col header b { margin-left: auto; font-family: var(--f-mono); color: var(--fg-3); font-weight: 500; }
+.ponto-cor { width: 7px; height: 7px; border-radius: 50%; background: var(--cor); flex-shrink: 0; }
+.mini-card { background: var(--panel); border: 1px solid var(--line-2); border-radius: 8px; padding: 7px 8px; display: grid; gap: 2px; font-size: 11px; }
+.mini-card .mono { font-size: 10px; color: var(--fg-3); }
+.mini-card strong { font-weight: 600; font-size: 11.5px; }
+.mini-card span:last-child { color: var(--fg-2); }
+.mini-card.novo { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+/* Celular com o Telegram */
+.fone {
+  grid-area: 1 / 1; justify-self: end; align-self: start; margin-top: 96px; position: relative; width: min(232px, 46%);
+  background: var(--tg-fundo); border: 6px solid var(--fone-borda); border-radius: 30px;
+  box-shadow: var(--sombra); overflow: hidden; font-size: 11px; line-height: 1.4;
+}
+.fone-status { display: flex; justify-content: space-between; padding: 6px 14px 4px; font-family: var(--f-mono); font-size: 9.5px; color: var(--fg-2); background: var(--tg-topo); }
+.fone-cab { display: flex; align-items: center; gap: 8px; padding: 6px 10px 8px; background: var(--tg-topo); border-bottom: 1px solid var(--line); }
+.fone-avatar { display: block; width: 26px; height: 26px; flex-shrink: 0; }
+.fone-cab b { display: block; font-size: 11.5px; }
+.fone-cab small { color: var(--tg-azul); font-size: 9.5px; }
+.fone-chat { padding: 10px 8px 12px; display: grid; gap: 8px; }
+.tg-msg { background: var(--tg-msg); border-radius: 10px 10px 10px 3px; padding: 7px 9px 5px; white-space: pre-line; color: var(--fg); }
+.tg-msg time { display: block; text-align: right; font-size: 8.5px; color: var(--fg-3); margin-top: 2px; }
+.tg-botao { margin-top: 3px; background: var(--tg-botao); border-radius: 8px; padding: 6px; text-align: center; color: var(--tg-azul); font-weight: 600; font-size: 10.5px; }
+.tg-dia { justify-self: center; font-size: 9px; color: var(--fg-2); background: var(--tg-msg); padding: 2px 8px; border-radius: 999px; }
+.fone-banner {
+  position: absolute; left: 6px; right: 6px; top: 6px; z-index: 2;
+  background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 12px;
+  padding: 7px 9px; font-size: 10px; display: flex; gap: 7px; align-items: center;
+  opacity: 0; transform: translateY(-120%); pointer-events: none;
+}
+.fone-banner b { display: block; font-size: 10.5px; }
+.fone.chegando .fone-banner { animation: banner 3.6s ease forwards; }
+.fone.chegando .tg-msg.nova { animation: chega 0.6s ease both; }
+@keyframes banner { 0% { opacity: 0; transform: translateY(-120%); } 12%, 78% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-120%); } }
+@keyframes chega { from { opacity: 0.2; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
+@media (max-width: 520px) { .vitrine .janela { width: 100%; } .mini-col:nth-child(3) { display: none; } .mini-quadro { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fone { grid-area: 2 / 1; width: min(260px, 100%); margin-top: -28px; } }
+
+/* Faixa de fatos */
+.fatos { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--bg-2); }
+.fatos .wrap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.fato { padding: 22px 18px; display: grid; gap: 4px; border-left: 1px solid var(--line); }
+.fato:first-child { border-left: 0; padding-left: 0; }
+.fato b { font-family: var(--f-mono); font-size: 1.25rem; font-weight: 600; color: var(--fg); letter-spacing: -0.01em; }
+.fato span { font-size: 13.5px; color: var(--fg-2); }
+@media (max-width: 820px) { .fatos .wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fato:nth-child(3) { border-left: 0; padding-left: 0; } .fato { border-top: 1px solid var(--line); } .fato:nth-child(-n+2) { border-top: 0; } }
+
+/* ── Demonstrações ────────────────────────────────────── */
+.abas { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.aba {
+  background: transparent; border: 1px solid var(--line-2); color: var(--fg-2);
+  padding: 0.55em 1em; border-radius: 999px; font-size: 14px; font-weight: 550; cursor: pointer;
+}
+.aba:hover { color: var(--fg); border-color: var(--fg-3); }
+.aba[aria-selected="true"] { background: var(--accent-soft); color: var(--fg); border-color: var(--accent); }
+.demo-janela .janela-corpo { padding: clamp(14px, 2vw, 22px); }
+.demo-dica { font-size: 14px; color: var(--fg-2); margin-bottom: 14px; max-width: 60em; }
+.retorno { min-height: 1.6em; margin-top: 14px; font-size: 14px; color: var(--fg-2); }
+.retorno.ok { color: var(--ok); }
+.retorno.erro { color: var(--bad); }
+.retorno.ok, .retorno.erro { font-weight: 550; }
+
+/* Kanban */
+.quadro { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(196px, 1fr); gap: 10px; overflow-x: auto; padding-bottom: 8px; }
+.coluna { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; min-height: 300px; transition: opacity 0.15s ease, border-color 0.15s ease; }
+.coluna > header { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; color: var(--fg-2); padding: 2px 2px 6px; }
+.coluna > header b { margin-left: auto; font-family: var(--f-mono); color: var(--fg-3); font-weight: 500; }
+.coluna.pode { border-color: var(--ok); background: var(--ok-soft); }
+.coluna.nao-pode { opacity: 0.4; }
+.os {
+  background: var(--panel); border: 1px solid var(--line-2); border-radius: 10px; padding: 10px;
+  display: grid; gap: 4px; font-size: 13px; cursor: grab; transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.os:hover { border-color: var(--fg-3); }
+.os.arrastando { opacity: 0.5; }
+.os.mexeu { animation: mexeu 0.5s ease; }
+.os.negado { animation: nega 0.4s ease; }
+@keyframes mexeu { from { transform: scale(0.96); border-color: var(--accent); } to { transform: none; } }
+@keyframes nega { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.os-topo { display: flex; align-items: center; gap: 6px; }
+.os-num { font-family: var(--f-mono); font-size: 11.5px; color: var(--fg-3); }
+.selo { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
+.selo-alta { background: var(--bad-soft); color: var(--bad); margin-left: auto; }
+.os strong { font-size: 14px; font-weight: 600; }
+.os .prob { color: var(--fg-2); font-size: 12.5px; }
+.os-pe { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-top: 4px; }
+.os-pe .mono { font-size: 12.5px; }
+.avancar { background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 7px; padding: 3px 8px; font-size: 12px; cursor: pointer; color: var(--fg-2); }
+.avancar:hover { color: var(--fg); border-color: var(--fg-3); }
+
+/* PDV */
+.pdv { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; }
+.produtos { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; align-content: start; }
+.produto {
+  text-align: left; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 11px;
+  display: grid; gap: 3px; cursor: pointer;
+}
+.produto:hover { border-color: var(--accent); }
+.produto b { font-weight: 600; font-size: 13.5px; }
+.produto .mono { font-size: 14px; color: var(--fg); }
+.produto small { font-size: 11.5px; color: var(--fg-3); }
+.produto.zerado b, .produto.zerado .mono { color: var(--fg-3); }
+.produto.zerado small { color: var(--bad); font-weight: 600; }
+.carrinho { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.itens { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; min-height: 72px; }
+.itens li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; font-size: 13.5px; }
+.itens li span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qtd { display: inline-flex; align-items: center; gap: 4px; }
+.qtd button { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line-2); background: var(--panel); cursor: pointer; line-height: 1; }
+.vazio { color: var(--fg-3); font-size: 13.5px; }
+.total { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); padding-top: 10px; }
+.total b { font-family: var(--f-mono); font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.pagamento { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.campo { display: grid; gap: 4px; font-size: 12.5px; color: var(--fg-2); }
+.campo input {
+  width: 100%; background: var(--panel); border: 1px solid var(--line-2); color: var(--fg); border-radius: 8px;
+  padding: 0.55em 0.7em; font-family: var(--f-mono); font-size: 14px;
+}
+.campo input:focus { outline: none; border-color: var(--accent); }
+.atalhos { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: var(--panel); border: 1px solid var(--line-2); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--fg-2); cursor: pointer; }
+.chip:hover { color: var(--fg); }
+.situacao { font-size: 13.5px; font-weight: 600; }
+.situacao.falta { color: var(--warn); }
+.situacao.troco { color: var(--ok); }
+@media (max-width: 760px) { .pdv { grid-template-columns: minmax(0, 1fr); } }
+
+/* Caixa, ponto e relatórios: duas colunas */
+.duas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 760px) { .duas { grid-template-columns: minmax(0, 1fr); } }
+.bloco { background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.bloco h3 { font-size: 15px; }
+.linhas { list-style: none; margin: 0; padding: 0; display: grid; }
+.linhas li { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.linhas li:last-child { border-bottom: 0; }
+.linhas .mono { white-space: nowrap; }
+.oculto { font-family: var(--f-mono); color: var(--fg-3); letter-spacing: 0.2em; }
+.resultado { display: grid; gap: 6px; padding: 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line-2); }
+.resultado .linha { display: flex; justify-content: space-between; font-size: 14px; }
+.resultado .grande { font-size: 1.15rem; font-weight: 650; }
+.cor-ok { color: var(--ok); }
+.cor-bad { color: var(--bad); }
+.cor-warn { color: var(--warn); }
+
+.relogio { display: grid; gap: 14px; }
+.relogio-saudacao { font-family: var(--f-display); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+.batida { width: 100%; padding: 0.9em; font-size: 16px; }
+.marcas { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.marcas li { display: flex; justify-content: space-between; font-size: 14px; color: var(--fg-2); }
+.marcas li b { color: var(--fg); font-weight: 550; }
+.tabela-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 11.5px; font-weight: 600; color: var(--fg-3); text-transform: uppercase; letter-spacing: 0.06em; }
+td.num, th.num { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.sem-saida { color: var(--warn); font-weight: 600; }
+
+.dre li.total-linha { font-weight: 650; border-top: 1px solid var(--line-2); }
+.dre li.menos span:first-child { color: var(--fg-2); }
+.alerta { font-size: 13px; color: var(--warn); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 8px 10px; }
+.legenda { display: flex; gap: 14px; font-size: 12.5px; color: var(--fg-2); }
+.legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.legenda i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.leg-v { background: var(--accent); }
+.leg-c { background: var(--info); }
+svg.grafico { width: 100%; height: auto; display: block; }
+.grafico .barra-v { fill: var(--accent); }
+.grafico .barra-c { fill: var(--info); }
+.grafico .grade { stroke: var(--line); stroke-width: 1; }
+.grafico text { fill: var(--fg-3); font-family: var(--f-mono); font-size: 11px; }
+.grafico .rotulo-topo { fill: var(--fg); font-weight: 600; }
+.funil { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.funil div { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; display: grid; gap: 2px; }
+.funil b { font-family: var(--f-mono); font-size: 1.15rem; }
+.funil span { font-size: 12px; color: var(--fg-2); }
+
+/* ── Módulos ──────────────────────────────────────────── */
+.modulo { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; padding-block: 24px; border-top: 1px solid var(--line); }
+.modulo:last-child { border-bottom: 1px solid var(--line); }
+.modulo-nome { display: grid; gap: 6px; align-content: start; }
+.modulo-nome .mono { font-size: 12px; color: var(--accent-2); letter-spacing: 0.08em; }
+.modulo ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 28px; }
+.modulo li { font-size: 14.5px; color: var(--fg-2); }
+.modulo li b { color: var(--fg); font-weight: 600; display: block; font-size: 15px; }
+@media (max-width: 760px) { .modulo { grid-template-columns: minmax(0, 1fr); gap: 12px; } .modulo ul { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Dono / confiança ─────────────────────────────────── */
+.grade-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.grade-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 860px) { .grade-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .grade-2, .grade-3 { grid-template-columns: minmax(0, 1fr); } }
+.item { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 8px; align-content: start; }
+.item .mono { font-size: 12px; color: var(--accent-2); letter-spacing: 0.06em; }
+.item p { color: var(--fg-2); font-size: 14.5px; }
+.cifra { font-family: var(--f-mono); font-size: 1.6rem; font-weight: 600; color: var(--fg); letter-spacing: -0.02em; }
+
+.origem { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: clamp(28px, 5vw, 64px); align-items: start; }
+.citacao { font-family: var(--f-display); font-weight: 650; font-size: clamp(1.45rem, 1.1rem + 1.4vw, 2.2rem); line-height: 1.18; letter-spacing: -0.02em; margin: 0; }
+.citacao::before { content: "“"; color: var(--accent); }
+.citacao::after { content: "”"; color: var(--accent); }
+.assinatura { margin-top: 14px; color: var(--fg-2); font-size: 14px; }
+.historias { display: grid; gap: 12px; }
+.historias p { color: var(--fg-2); font-size: 15px; }
+.historias b { color: var(--fg); }
+@media (max-width: 860px) { .origem { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Planos ───────────────────────────────────────────── */
+.planos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 900px; }
+@media (max-width: 700px) { .planos { grid-template-columns: minmax(0, 1fr); } }
+.plano { background: var(--panel); border: 1px solid var(--line-2); border-radius: 16px; padding: 24px; display: grid; gap: 16px; align-content: start; }
+.plano.destaque { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.plano-topo { display: flex; align-items: center; gap: 10px; }
+.plano-topo .selo { background: var(--accent-soft); color: var(--accent-2); margin-left: auto; }
+.preco { display: flex; align-items: baseline; gap: 6px; }
+.preco b { font-family: var(--f-mono); font-size: 2.4rem; font-weight: 600; letter-spacing: -0.03em; }
+.preco span { color: var(--fg-3); }
+.plano ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: 14.5px; color: var(--fg-2); }
+.plano li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 6px; }
+.plano li::before { content: "✓"; color: var(--ok); font-weight: 700; }
+.plano-nota { margin-top: 18px; color: var(--fg-3); font-size: 14px; max-width: 52em; }
+
+/* ── Perguntas ────────────────────────────────────────── */
+.perguntas { display: grid; gap: 10px; max-width: 820px; }
+details { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 0 18px; }
+summary { cursor: pointer; padding: 16px 0; font-weight: 600; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; font-family: var(--f-mono); color: var(--accent-2); font-size: 18px; line-height: 1; }
+details[open] summary::after { content: "−"; }
+details p { padding-bottom: 16px; color: var(--fg-2); font-size: 15px; max-width: 62em; }
+
+/* ── Contato ──────────────────────────────────────────── */
+.contato { background: var(--panel); border: 1px solid var(--line-2); border-radius: 20px; padding: clamp(24px, 4vw, 48px); display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 28px; align-items: center; }
+@media (max-width: 760px) { .contato { grid-template-columns: minmax(0, 1fr); } }
+.contato-acoes { display: grid; gap: 10px; justify-items: start; }
+.numero { font-family: var(--f-mono); font-size: 1.15rem; user-select: all; }
+
+.rodape { padding-block: 32px; border-top: 1px solid var(--line); color: var(--fg-3); font-size: 13.5px; }
+.rodape .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<header class="topo">
+  <div class="wrap">
+    <a class="logo" href="#inicio" aria-label="Sistema Cell, início">
+      <img class="logo-marca" src="marca/favicon.svg" alt="" width="34" height="34">
+      <span class="logo-nome">sistema<b>cell</b></span>
+    </a>
+    <nav class="menu" aria-label="Seções">
+      <a href="#demo">Ver funcionando</a>
+      <a href="#modulos">Módulos</a>
+      <a href="#dono">Para o dono</a>
+      <a href="#planos">Planos</a>
+      <a href="#perguntas">Perguntas</a>
+    </nav>
+    <a class="btn btn-pri btn-peq" href="#contato">Agendar demonstração</a>
+  </div>
+</header>
+
+<main id="inicio">
+  <!-- ── Hero ── -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-texto">
+        <p class="eyebrow">Gestão para assistência técnica de celular</p>
+        <h1>Sua equipe agiliza no balcão. <em>Você fica tranquilo</em> de onde estiver.</h1>
+        <p class="lead">Ordens de serviço, PDV, estoque, caixa e relatórios num sistema só. E a cada OS aberta, um aviso chega no seu celular.</p>
+        <div class="ctas">
+          <a class="btn btn-pri" href="#demo">Ver o sistema funcionando</a>
+          <a class="btn btn-sec" href="#contato">Agendar uma demonstração</a>
+        </div>
+        <ul class="hero-fatos">
+          <li>Sem instalar nada</li>
+          <li>Funciona no navegador</li>
+          <li>Feito dentro de uma assistência</li>
+        </ul>
+      </div>
+
+      <div class="vitrine" aria-label="Exemplo: o quadro de consertos no computador e o aviso de OS nova no celular do dono">
+        <div class="janela">
+          <div class="janela-barra">
+            <span class="bolinhas" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="janela-titulo">Consertos</span>
+            <span class="etiqueta">exemplo</span>
+          </div>
+          <div class="mini-quadro">
+            <div class="mini-col" style="--cor: var(--st-orcamento)">
+              <header><span class="ponto-cor"></span>Em orçamento <b>2</b></header>
+              <div class="mini-card novo"><span class="mono">OS-2026-0142</span><strong>iPhone 11</strong><span>Tela trincada</span></div>
+              <div class="mini-card"><span class="mono">OS-2026-0141</span><strong>Redmi Note 12</strong><span>Não liga</span></div>
+            </div>
+            <div class="mini-col" style="--cor: var(--st-conserto)">
+              <header><span class="ponto-cor"></span>Em conserto <b>2</b></header>
+              <div class="mini-card"><span class="mono">OS-2026-0138</span><strong>Galaxy A54</strong><span>Troca de tela</span></div>
+              <div class="mini-card"><span class="mono">OS-2026-0137</span><strong>iPhone 12</strong><span>Face ID</span></div>
+            </div>
+            <div class="mini-col" style="--cor: var(--st-pronto)">
+              <header><span class="ponto-cor"></span>Pronto p/ retirada <b>1</b></header>
+              <div class="mini-card"><span class="mono">OS-2026-0136</span><strong>Galaxy S21</strong><span>Câmera traseira</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="fone" id="fone">
+          <div class="fone-banner" aria-hidden="true">
+            <img class="fone-avatar" src="marca/favicon.svg" alt="">
+            <span><b>Sistema Cell Avisos</b>Nova OS OS-2026-0142</span>
+          </div>
+          <div class="fone-status"><span>14:12</span><span>5G ▮▮▮</span></div>
+          <div class="fone-cab">
+            <img class="fone-avatar" src="marca/favicon.svg" alt="">
+            <span><b>Sistema Cell Avisos</b><small>bot</small></span>
+          </div>
+          <div class="fone-chat">
+            <span class="tg-dia">Hoje</span>
+            <div class="tg-msg">☀️ <b>Consertos em aberto: 6</b>
+Em orçamento: 1 · Aguardando aprovação: 2 · Em conserto: 2 · Pronto p/ retirada: 1
+
+<b>Paradas há mais de 1 dia: 1</b>
+• OS-2026-0131 · Moto G84 — Aguardando aprovação há 2 dias<time>09:00</time></div>
+            <div class="tg-msg nova">🔧 <b>Nova OS OS-2026-0142</b>
+iPhone 11 — Tela trincada, touch falhando
+Orçamento: R$ 450,00
+Aberta por Ana<time>14:12</time></div>
+            <div class="tg-botao">Abrir no sistema</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Fatos ── -->
+  <div class="fatos">
+    <div class="wrap">
+      <div class="fato"><b>178</b><span>testes automáticos rodam a cada atualização</span></div>
+      <div class="fato"><b>15 min</b><span>de intervalo do vigia que avisa se o sistema cair</span></div>
+      <div class="fato"><b>Auditoria</b><span>de toda alteração: quem, o quê e quando</span></div>
+      <div class="fato"><b>Balcão real</b><span>cada tela nasceu de um problema da loja</span></div>
+    </div>
+  </div>
+
+  <!-- ── Demonstrações ── -->
+  <section class="secao" id="demo">
+    <div class="wrap">
+      <div class="secao-cab">
+        <p class="eyebrow">Veja funcionando</p>
+        <h2>Uma amostra das telas, com dados de exemplo. Pode clicar.</h2>
+        <p class="lead">Arraste uma OS, faça uma venda com troco, feche o caixa às cegas e bata o ponto. Tudo aqui se comporta como no sistema.</p>
+      </div>
+
+      <div class="abas" role="tablist" aria-label="Demonstrações">
+        <button class="aba" role="tab" id="aba-os" aria-controls="painel-os" aria-selected="true">Ordens de serviço</button>
+        <button class="aba" role="tab" id="aba-pdv" aria-controls="painel-pdv" aria-selected="false" tabindex="-1">PDV</button>
+        <button class="aba" role="tab" id="aba-caixa" aria-controls="painel-caixa" aria-selected="false" tabindex="-1">Caixa às cegas</button>
+        <button class="aba" role="tab" id="aba-ponto" aria-controls="painel-ponto" aria-selected="false" tabindex="-1">Ponto da equipe</button>
+        <button class="aba" role="tab" id="aba-rel" aria-controls="painel-rel" aria-selected="false" tabindex="-1">Relatórios</button>
+      </div>
+
+      <div class="janela demo-janela">
+        <div class="janela-barra">
+          <span class="bolinhas" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="janela-titulo" id="demo-titulo">Sistema Cell · Consertos</span>
+          <span class="etiqueta">dados de exemplo</span>
+        </div>
+        <div class="janela-corpo">
+
+          <!-- OS -->
+          <div role="tabpanel" id="painel-os" aria-labelledby="aba-os">
+            <p class="demo-dica">Arraste um card para outra coluna, ou toque em <b>Avançar</b>. A OS só anda pelas etapas permitidas: não dá para entregar um aparelho que nem foi aprovado.</p>
+            <div class="quadro" id="quadro"></div>
+            <div class="retorno" id="retorno-os" aria-live="polite"></div>
+            <button class="btn btn-sec btn-peq" type="button" id="os-recomecar">Recomeçar</button>
+          </div>
+
+          <!-- PDV -->
+          <div role="tabpanel" id="painel-pdv" aria-labelledby="aba-pdv" hidden>
+            <p class="demo-dica">Toque nos produtos para montar a venda. Divida entre Pix e dinheiro: o troco sai certo e o estoque baixa sozinho. Produto zerado vira registro de venda perdida.</p>
+            <div class="pdv">
+              <div class="produtos" id="produtos"></div>
+              <div class="carrinho">
+                <div style="display:flex;justify-content:space-between;align-items:baseline">
+                  <h3>Venda <span class="mono muted" id="venda-num">V-2026-0318</span></h3>
+                </div>
+                <ul class="itens" id="itens"></ul>
+                <div class="total"><span>Total</span><b id="total">R$ 0,00</b></div>
+                <div class="pagamento">
+                  <label class="campo" for="pg-pix">Pix<input id="pg-pix" inputmode="decimal" placeholder="0,00" autocomplete="off"></label>
+                  <label class="campo" for="pg-din">Dinheiro recebido<input id="pg-din" inputmode="decimal" placeholder="0,00" autocomplete="off"></label>
+                </div>
+                <div class="atalhos">
+                  <button class="chip" type="button" data-atalho="pix">Tudo no Pix</button>
+                  <button class="chip" type="button" data-atalho="50">Dinheiro R$ 50</button>
+                  <button class="chip" type="button" data-atalho="100">Dinheiro R$ 100</button>
+                  <button class="chip" type="button" data-atalho="limpar">Limpar</button>
+                </div>
+                <div class="situacao" id="situacao" aria-live="polite"></div>
+                <button class="btn btn-pri" type="button" id="finalizar" disabled>Finalizar venda</button>
+              </div>
+            </div>
+            <div class="retorno" id="retorno-pdv" aria-live="polite"></div>
+          </div>
+
+          <!-- Caixa -->
+          <div role="tabpanel" id="painel-caixa" aria-labelledby="aba-caixa" hidden>
+            <p class="demo-dica">Na conferência às cegas, quem fecha o caixa conta o dinheiro <b>antes</b> de ver o número do sistema. Assim a contagem é de verdade, e a diferença aparece sem disfarce.</p>
+            <div class="duas">
+              <div class="bloco">
+                <h3>Caixa aberto às 08:02 por Ana</h3>
+                <ul class="linhas">
+                  <li><span>Troco inicial</span><span class="mono">R$ 150,00</span></li>
+                  <li><span>Vendas em dinheiro</span><span class="oculto" data-revela="486.50">•••••</span></li>
+                  <li><span>Consertos recebidos em dinheiro</span><span class="oculto" data-revela="180.00">•••••</span></li>
+                  <li><span>Reforço de troco</span><span class="mono">+ R$ 50,00</span></li>
+                  <li><span>Sangria (depósito no banco)</span><span class="mono">− R$ 250,00</span></li>
+                  <li><span><b>Saldo esperado na gaveta</b></span><span class="oculto" id="esperado-linha">oculto até a contagem</span></li>
+                </ul>
+              </div>
+              <form class="bloco" id="form-caixa" novalidate>
+                <h3>Fechar o caixa</h3>
+                <label class="campo" for="contado">Quanto tem na gaveta agora?<input id="contado" inputmode="decimal" placeholder="Ex.: 612,50" autocomplete="off"></label>
+                <button class="btn btn-pri" type="submit" id="fechar-caixa">Fechar caixa</button>
+                <div class="resultado" id="resultado-caixa" hidden>
+                  <div class="linha"><span>Contado</span><span class="mono" id="r-contado"></span></div>
+                  <div class="linha"><span>Esperado pelo sistema</span><span class="mono" id="r-esperado"></span></div>
+                  <div class="linha grande"><span>Diferença</span><span class="mono" id="r-dif"></span></div>
+                  <p class="muted" style="font-size:13px" id="r-nota"></p>
+                </div>
+                <button class="btn btn-sec btn-peq" type="button" id="caixa-reabrir" hidden>Contar de novo</button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Ponto -->
+          <div role="tabpanel" id="painel-ponto" aria-labelledby="aba-ponto" hidden>
+            <p class="demo-dica">Ao entrar no sistema, a funcionária registra a entrada. Depois, um botão no topo mostra a próxima batida. O dono acompanha o mês de cada um. Batida só pelo computador da loja; pelo celular, dá para consultar.</p>
+            <div class="duas">
+              <div class="bloco relogio">
+                <p class="relogio-saudacao">Bom dia, Ana!</p>
+                <button class="btn btn-pri batida" type="button" id="batida">Registrar entrada</button>
+                <ul class="marcas" id="marcas"></ul>
+                <div class="resultado">
+                  <div class="linha"><span>Trabalhado hoje</span><span class="mono" id="trab">0h00</span></div>
+                  <div class="linha"><span>Almoço</span><span class="mono" id="alm">0h00</span></div>
+                </div>
+                <button class="btn btn-sec btn-peq" type="button" id="ponto-recomecar">Recomeçar o dia</button>
+              </div>
+              <div class="bloco">
+                <h3>Mês da Ana · outubro</h3>
+                <div class="tabela-wrap">
+                  <table>
+                    <thead><tr><th>Dia</th><th>Entrada</th><th>Saída</th><th class="num">Almoço</th><th class="num">Trabalhado</th></tr></thead>
+                    <tbody>
+                      <tr><td>Seg 05/10</td><td class="mono">08:57</td><td class="mono">18:10</td><td class="num">1h00</td><td class="num">8h13</td></tr>
+                      <tr><td>Ter 06/10</td><td class="mono">09:02</td><td class="mono">18:00</td><td class="num">0h55</td><td class="num">8h03</td></tr>
+                      <tr><td>Qua 07/10</td><td class="mono">08:55</td><td class="mono">18:05</td><td class="num">1h02</td><td class="num">8h08</td></tr>
+                      <tr><td>Qui 08/10</td><td class="mono">09:00</td><td class="mono">17:48</td><td class="num">0h48</td><td class="num">8h00</td></tr>
+                      <tr><td>Sex 09/10</td><td class="mono">08:59</td><td class="sem-saida">Sem saída</td><td class="num">—</td><td class="num">3h31</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="muted" style="font-size:13px">Esqueceu de bater? O dono lança o registro com motivo, e o original nunca é apagado.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Relatórios -->
+          <div role="tabpanel" id="painel-rel" aria-labelledby="aba-rel" hidden>
+            <p class="demo-dica">O resultado do mês com o custo real de cada venda e de cada peça usada no conserto. Conserto entra no mês em que foi entregue.</p>
+            <div class="duas">
+              <div class="bloco">
+                <h3>Resultado de outubro (DRE)</h3>
+                <ul class="linhas dre">
+                  <li><span>Vendas de produtos</span><span class="mono">R$ 18.420,00</span></li>
+                  <li><span>Consertos entregues</span><span class="mono">R$ 12.860,00</span></li>
+                  <li class="total-linha"><span>Receita</span><span class="mono">R$ 31.280,00</span></li>
+                  <li class="menos"><span>Custo dos produtos vendidos</span><span class="mono">− R$ 9.310,00</span></li>
+                  <li class="menos"><span>Custo das peças dos consertos</span><span class="mono">− R$ 3.920,00</span></li>
+                  <li class="total-linha"><span>Margem bruta (57,7%)</span><span class="mono">R$ 18.050,00</span></li>
+                </ul>
+                <p class="alerta">R$ 1.240,00 foram vendidos em produtos sem custo cadastrado. A margem real deles fica de fora até o custo ser informado.</p>
+              </div>
+              <div class="bloco">
+                <h3>Faturamento dos últimos 6 meses</h3>
+                <div class="legenda"><span><i class="leg-v"></i>Vendas</span><span><i class="leg-c"></i>Consertos</span></div>
+                <svg class="grafico" id="grafico" viewBox="0 0 520 250" role="img" aria-label="Faturamento mensal de maio a outubro, vendas e consertos empilhados"></svg>
+                <div class="funil">
+                  <div><b>78%</b><span>orçamentos aprovados</span></div>
+                  <div><b>91%</b><span>entregues no prazo</span></div>
+                  <div><b>1,6 dia</b><span>em conserto, em média</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Módulos ── -->
+  <section class="secao" id="modulos">
+    <div class="wrap">
+      <div class="secao-cab">
+        <p class="eyebrow">Tudo que a loja usa no dia</p>
+        <h2>Do aparelho que chega no balcão ao resultado do mês.</h2>
+      </div>
+
+      <div class="modulo">
+        <div class="modulo-nome"><span class="mono">OS-2026-0142</span><h3>Consertos</h3></div>
+        <ul>
+          <li><b>Quadro de etapas</b>Do orçamento à entrega, arrastando o card. Etapa não se pula.</li>
+          <li><b>Garantia e reentrada</b>90 dias por padrão; a volta na garantia fica ligada à OS original.</li>
+          <li><b>Peças na OS</b>A peça usada sai do estoque e o custo entra no resultado.</li>
+          <li><b>Pagamento parcial</b>Sinal, restante, troco. O que ficou devendo aparece em "A receber".</li>
+          <li><b>OS impressa</b>Folha A4 com dados do aparelho, peças e termos de garantia.</li>
+          <li><b>Histórico completo</b>Cada mudança de etapa com data, hora e quem mexeu.</li>
+        </ul>
+      </div>
+
+      <div class="modulo">
+        <div class="modulo-nome"><span class="mono">V-2026-0318</span><h3>Vendas e PDV</h3></div>
+        <ul>
+          <li><b>PDV rápido</b>Busca, carrinho, desconto e cupom não fiscal.</li>
+          <li><b>Pagamento dividido</b>Pix, cartão e dinheiro na mesma venda, com troco calculado.</li>
+          <li><b>Cancelamento com estorno</b>Cancelou, os produtos voltam para o estoque.</li>
+          <li><b>Venda perdida</b>Cliente pediu e não tinha? Fica anotado, e vira o ranking de faltas.</li>
+        </ul>
+      </div>
+
+      <div class="modulo">
+        <div class="modulo-nome"><span class="mono">PED-2026-0047</span><h3>Estoque e compras</h3></div>
+        <ul>
+          <li><b>Estoque mínimo</b>Alerta no painel quando um produto está acabando.</li>
+          <li><b>Movimentações com motivo</b>Entrada, saída e ajuste, sempre com a origem.</li>
+          <li><b>Pedidos de compra</b>Pedido recebido dá entrada no estoque sozinho.</li>
+          <li><b>Busca como em site de anúncio</b>Ordene por preço, custo ou margem, com faixa de valor.</li>
+        </ul>
+      </div>
+
+      <div class="modulo">
+        <div class="modulo-nome"><span class="mono">R$ 616,50</span><h3>Dinheiro</h3></div>
+        <ul>
+          <li><b>Caixa com conferência às cegas</b>Abertura, sangria, reforço e fechamento com diferença.</li>
+          <li><b>DRE do mês</b>Custo real de cada venda e de cada peça, sem conta de cabeça.</li>
+          <li><b>Faturamento e ticket médio</b>Por mês, por forma de pagamento e por cliente.</li>
+          <li><b>Funil do reparo</b>Quantos orçamentos viram conserto e onde a OS empaca.</li>
+          <li><b>Comissão de técnico</b>Percentual configurável sobre o que cada um entregou.</li>
+          <li><b>Planilhas</b>Exporte produtos, clientes, vendas, OS e estoque.</li>
+        </ul>
+      </div>
+
+      <div class="modulo">
+        <div class="modulo-nome"><span class="mono">08:58 · 18:04</span><h3>Equipe e controle</h3></div>
+        <ul>
+          <li><b>Usuários com papéis</b>Administrador e operador; o operador não vê relatórios nem configurações.</li>
+          <li><b>Registro de ponto</b>Entrada, almoço e saída, com o mês de cada pessoa.</li>
+          <li><b>Auditoria</b>Toda alteração registrada, inclusive o que foi tentado e recusado.</li>
+          <li><b>Backup completo</b>Uma cópia de todos os dados em um clique.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Para o dono ── -->
+  <section class="secao" id="dono">
+    <div class="wrap">
+      <div class="secao-cab">
+        <p class="eyebrow">Para o dono</p>
+        <h2>A loja em ordem, mesmo quando você não está nela.</h2>
+        <p class="lead">O sistema foi pensado para quem não pode ficar o dia todo no balcão e precisa saber o que está acontecendo.</p>
+      </div>
+      <div class="grade-2">
+        <div class="item"><span class="mono">TELEGRAM · NA HORA</span><h3>Aviso a cada OS aberta</h3><p>Número, aparelho, problema, orçamento e quem abriu, com um botão que leva direto à OS. Grátis, pelo Telegram.</p></div>
+        <div class="item"><span class="mono">TELEGRAM · 9H</span><h3>Resumo das OS paradas</h3><p>Toda manhã: quantas OS estão em cada etapa e quais estão paradas há mais de um dia. Nenhum aparelho esquecido na prateleira.</p></div>
+        <div class="item"><span class="mono">CAIXA · ÀS CEGAS</span><h3>Fechamento sem ajeitar a conta</h3><p>Quem fecha conta o dinheiro antes de ver o esperado. A diferença aparece como foi, e fica registrado quem fechou.</p></div>
+        <div class="item"><span class="mono">AUDITORIA · PONTO</span><h3>Quem fez o quê, e quando</h3><p>Cada alteração no sistema fica registrada, e o ponto mostra os dias e as horas de cada pessoa da equipe.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Confiança ── -->
+  <section class="secao" id="confianca">
+    <div class="wrap">
+      <div class="secao-cab">
+        <p class="eyebrow">Segurança e confiabilidade</p>
+        <h2>O que protege o seu dinheiro e os seus dados.</h2>
+      </div>
+      <div class="grade-3">
+        <div class="item"><span class="cifra">178</span><h3>testes a cada atualização</h3><p>Vendas, caixa, estoque e OS são testados num banco de verdade a cada atualização do sistema.</p></div>
+        <div class="item"><span class="cifra">2 cliques</span><h3>não viram 2 vendas</h3><p>Travas contra clique duplo: a venda não duplica, o estoque não fica negativo, o caixa não abre duas vezes.</p></div>
+        <div class="item"><span class="cifra">15 min</span><h3>de olho no sistema</h3><p>No horário da loja, um vigia independente confere se o sistema está no ar e avisa quando cai e quando volta.</p></div>
+        <div class="item"><span class="cifra">2 h</span><h3>de sessão sem uso</h3><p>Computador esquecido aberto sai sozinho. Funcionário novo entra com senha provisória e troca no primeiro acesso.</p></div>
+        <div class="item"><span class="cifra">1 clique</span><h3>para o backup completo</h3><p>Todos os dados da loja num arquivo, para guardar fora do sistema quando quiser.</p></div>
+        <div class="item"><span class="cifra">HTTPS</span><h3>conexão criptografada</h3><p>Do navegador ao banco de dados, com o acesso de cada pessoa registrado.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Origem ── -->
+  <section class="secao" id="origem">
+    <div class="wrap origem">
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px">Como nasceu</p>
+        <blockquote class="citacao">O sistema foi criado para os funcionários agilizarem lá e eu me sentir tranquilo aqui.</blockquote>
+        <p class="assinatura">Elias, dono da CG CELL</p>
+      </div>
+      <div class="historias">
+        <p>O Sistema Cell nasceu dentro da <b>CG CELL</b>, uma assistência técnica de celulares. Cada tela resolve algo que aconteceu de verdade no balcão.</p>
+        <p><b>A OS esquecida esperando aprovação</b> virou o resumo das 9h. <b>A diferença no caixa no fim do dia</b> virou a conferência às cegas. <b>A peça prometida a dois clientes</b> virou a trava de estoque.</p>
+        <p>Não é um sistema genérico adaptado para celular. É o sistema de uma assistência, usado todos os dias numa assistência.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Planos ── -->
+  <section class="secao" id="planos">
+    <div class="wrap">
+      <div class="secao-cab">
+        <p class="eyebrow">Planos · valores de lançamento</p>
+        <h2>Um preço por loja. Sem taxa de instalação.</h2>
+      </div>
+      <div class="planos">
+        <div class="plano">
+          <div class="plano-topo"><h3>Essencial</h3></div>
+          <div class="preco"><b>R$ 59</b><span>/mês</span></div>
+          <ul>
+            <li>Ordens de serviço com quadro de etapas, garantia e impressão</li>
+            <li>PDV com pagamento dividido e cupom</li>
+            <li>Estoque, pedidos de compra e fornecedores</li>
+            <li>Caixa com conferência às cegas</li>
+            <li>Até 3 usuários</li>
+          </ul>
+          <a class="btn btn-sec" href="#contato">Quero o Essencial</a>
+        </div>
+        <div class="plano destaque">
+          <div class="plano-topo"><h3>Completo</h3><span class="selo">recomendado</span></div>
+          <div class="preco"><b>R$ 99</b><span>/mês</span></div>
+          <ul>
+            <li>Tudo do Essencial</li>
+            <li>Relatórios: DRE, funil do reparo, faltas, comissão</li>
+            <li>Avisos no Telegram: OS nova e resumo das 9h</li>
+            <li>Registro de ponto da equipe</li>
+            <li>Auditoria completa</li>
+            <li>Usuários sem limite</li>
+          </ul>
+          <a class="btn btn-pri" href="#contato">Quero o Completo</a>
+        </div>
+      </div>
+      <p class="plano-nota">Tem mais de uma loja? Fale com a gente. Nota fiscal (NFC-e e NFS-e) ainda não está disponível: está prevista e vai entrar como adicional.</p>
+    </div>
+  </section>
+
+  <!-- ── Perguntas ── -->
+  <section class="secao" id="perguntas">
+    <div class="wrap">
+      <div class="secao-cab">
+        <p class="eyebrow">Perguntas</p>
+        <h2>O que as assistências costumam perguntar.</h2>
+      </div>
+      <div class="perguntas">
+        <details><summary>Preciso instalar alguma coisa?</summary><p>Não. O sistema roda no navegador do computador da loja. No celular, dá para consultar OS, vendas e relatórios.</p></details>
+        <details><summary>Funciona em computador simples?</summary><p>Sim. Em máquinas mais modestas, o sistema entra sozinho num modo leve: os efeitos param de animar e nada some da tela.</p></details>
+        <details><summary>Emite nota fiscal?</summary><p>Ainda não. Hoje o sistema imprime a OS e o cupom não fiscal. A emissão de NFC-e e NFS-e está prevista.</p></details>
+        <details><summary>Como acompanho a loja de longe?</summary><p>Pelo Telegram, com um aviso a cada OS aberta e um resumo às 9h das OS paradas. No sistema, a auditoria e o ponto mostram o que a equipe fez.</p></details>
+        <details><summary>Meus dados ficam seguros?</summary><p>Ficam num banco de dados gerenciado na nuvem, com conexão criptografada. Você baixa um backup completo quando quiser, e cada acesso fica registrado.</p></details>
+        <details><summary>E se a internet da loja cair?</summary><p>O sistema precisa de internet. Se a conexão da loja cair, dá para continuar usando pelo roteador do celular até ela voltar.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Contato ── -->
+  <section class="secao" id="contato">
+    <div class="wrap">
+      <div class="contato">
+        <div style="display:grid;gap:14px">
+          <p class="eyebrow">Demonstração</p>
+          <h2>Quer ver o sistema com a sua loja?</h2>
+          <p class="lead">Numa conversa de 15 minutos a gente mostra o sistema funcionando e tira as dúvidas da sua equipe.</p>
+        </div>
+        <div class="contato-acoes" id="contato-acoes">
+          <a class="btn btn-pri" id="whats-link" href="#contato" target="_blank" rel="noopener">Chamar no WhatsApp</a>
+          <span class="numero" id="whats-numero"></span>
+          <button class="btn btn-sec btn-peq" type="button" id="copiar">Copiar número</button>
+          <span class="muted" id="copiado" aria-live="polite" style="font-size:13px"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="rodape">
+  <div class="wrap">
+    <span>Sistema Cell · gestão para assistência técnica de celular</span>
+    <span>Criado na CG CELL · 2026</span>
+  </div>
+</footer>
+
+<script>
+// Contato comercial: preencha antes de publicar (só números, com 55 e DDD).
+const CONTATO = { whatsapp: '', mensagem: 'Olá! Quero conhecer o Sistema Cell.' };
+
+const brl = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const $ = (s, el = document) => el.querySelector(s);
+
+function lerValor(texto) {
+  let t = String(texto || '').replace(/R\$|\s/gi, '');
+  if (!t) return 0;
+  if (t.includes(',')) t = t.replace(/\./g, '').replace(',', '.');
+  else if (/^\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+  const n = Number(t);
+  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : 0;
+}
+
+function avisar(el, texto, tipo) {
+  el.textContent = texto;
+  el.className = 'retorno' + (tipo ? ' ' + tipo : '');
+}
+
+// ── Abas ─────────────────────────────────────────────
+const TITULOS = { os: 'Consertos', pdv: 'PDV', caixa: 'Caixa', ponto: 'Meu ponto', rel: 'Relatórios' };
+const abas = [...document.querySelectorAll('.aba')];
+function abrirAba(aba, focar) {
+  abas.forEach((a) => {
+    const sel = a === aba;
+    a.setAttribute('aria-selected', String(sel));
+    a.tabIndex = sel ? 0 : -1;
+    document.getElementById(a.getAttribute('aria-controls')).hidden = !sel;
+  });
+  $('#demo-titulo').textContent = 'Sistema Cell · ' + TITULOS[aba.id.replace('aba-', '')];
+  if (focar) aba.focus();
+}
+abas.forEach((a, i) => {
+  a.addEventListener('click', () => abrirAba(a));
+  a.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const prox = abas[(i + (e.key === 'ArrowRight' ? 1 : abas.length - 1)) % abas.length];
+    abrirAba(prox, true);
+  });
+});
+
+// ── Kanban de OS (mesma matriz de etapas do sistema) ─────────────
+const ETAPAS = [
+  { k: 'orcamento', nome: 'Em orçamento' },
+  { k: 'aprovacao', nome: 'Aguardando aprovação' },
+  { k: 'conserto', nome: 'Em conserto' },
+  { k: 'peca', nome: 'Aguardando peça' },
+  { k: 'pronto', nome: 'Pronto p/ retirada' },
+  { k: 'entregue', nome: 'Entregue' },
+];
+const NOME = Object.fromEntries(ETAPAS.map((e) => [e.k, e.nome]));
+const TRANSICOES = {
+  orcamento: ['aprovacao'],
+  aprovacao: ['orcamento', 'conserto'],
+  conserto: ['aprovacao', 'peca', 'pronto'],
+  peca: ['conserto', 'pronto'],
+  pronto: ['conserto', 'peca', 'entregue'],
+  entregue: [],
+};
+const PROXIMA = { orcamento: 'aprovacao', aprovacao: 'conserto', conserto: 'pronto', peca: 'conserto', pronto: 'entregue' };
+const OS_INICIAIS = [
+  { n: 'OS-2026-0142', ap: 'iPhone 11', pr: 'Tela trincada, touch falhando', v: 450, s: 'orcamento' },
+  { n: 'OS-2026-0141', ap: 'Redmi Note 12', pr: 'Não liga', v: 0, s: 'orcamento' },
+  { n: 'OS-2026-0139', ap: 'iPhone 13', pr: 'Bateria descarregando rápido', v: 290, s: 'aprovacao' },
+  { n: 'OS-2026-0138', ap: 'Galaxy A54', pr: 'Troca de tela', v: 380, s: 'conserto', alta: true },
+  { n: 'OS-2026-0140', ap: 'Moto G84', pr: 'Conector de carga', v: 150, s: 'peca' },
+  { n: 'OS-2026-0136', ap: 'Galaxy S21', pr: 'Câmera traseira', v: 520, s: 'pronto' },
+  { n: 'OS-2026-0133', ap: 'iPhone XR', pr: 'Troca de tela', v: 330, s: 'entregue' },
+];
+let ordens = [];
+const retornoOs = $('#retorno-os');
+const quadro = $('#quadro');
+
+function mensagemDeMudanca(os, para) {
+  switch (para) {
+    case 'aprovacao': return `${os.n} aguardando aprovação do cliente. Se ficar parada mais de 1 dia, entra no resumo das 9h.`;
+    case 'orcamento': return `${os.n} voltou para orçamento.`;
+    case 'conserto': return `${os.n} em conserto.`;
+    case 'peca': return `${os.n} aguardando peça. Quando a peça chegar, volta para o conserto.`;
+    case 'pronto': return `${os.n} pronta para retirada.`;
+    case 'entregue': return `${os.n} entregue. A garantia de 90 dias começa hoje e fica no histórico.`;
+    default: return '';
+  }
+}
+
+function mover(os, para) {
+  const de = os.s;
+  if (de === para) return;
+  if (!TRANSICOES[de].includes(para)) {
+    const el = quadro.querySelector(`[data-os="${os.n}"]`);
+    if (el) { el.classList.remove('negado'); void el.offsetWidth; el.classList.add('negado'); }
+    if (de === 'entregue') {
+      avisar(retornoOs, `${os.n} já foi entregue. Só o administrador corrige, e precisa dizer o motivo.`, 'erro');
+    } else {
+      const vai = TRANSICOES[de].map((k) => `"${NOME[k]}"`).join(' ou ');
+      avisar(retornoOs, `De "${NOME[de]}" a OS vai para ${vai}. Etapa não se pula.`, 'erro');
+    }
+    return;
+  }
+  os.s = para;
+  desenharQuadro(os.n);
+  avisar(retornoOs, mensagemDeMudanca(os, para), 'ok');
+}
+
+function desenharQuadro(destaque) {
+  quadro.innerHTML = '';
+  for (const etapa of ETAPAS) {
+    const col = document.createElement('section');
+    col.className = 'coluna';
+    col.dataset.etapa = etapa.k;
+    col.style.setProperty('--cor', `var(--st-${etapa.k})`);
+    const doEtapa = ordens.filter((o) => o.s === etapa.k);
+    col.setAttribute('aria-label', `${etapa.nome}, ${doEtapa.length} OS`);
+    const cab = document.createElement('header');
+    cab.innerHTML = `<span class="ponto-cor"></span>${etapa.nome} <b>${doEtapa.length}</b>`;
+    col.append(cab);
+    for (const os of doEtapa) {
+      const card = document.createElement('article');
+      card.className = 'os' + (os.n === destaque ? ' mexeu' : '');
+      card.draggable = true;
+      card.dataset.os = os.n;
+      const valor = os.v > 0 ? brl(os.v) : 'a orçar';
+      const botao = PROXIMA[os.s] ? `<button class="avancar" type="button" data-avancar="${os.n}" aria-label="Avançar ${os.n} para ${NOME[PROXIMA[os.s]]}">Avançar →</button>` : '';
+      card.innerHTML = `
+        <div class="os-topo"><span class="os-num">${os.n}</span>${os.alta ? '<span class="selo selo-alta">Alta</span>' : ''}</div>
+        <strong>${os.ap}</strong>
+        <span class="prob">${os.pr}</span>
+        <div class="os-pe"><span class="mono">${valor}</span>${botao}</div>`;
+      card.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', os.n);
+        e.dataTransfer.effectAllowed = 'move';
+        card.classList.add('arrastando');
+        quadro.querySelectorAll('.coluna').forEach((c) => {
+          if (c.dataset.etapa === os.s) return;
+          c.classList.add(TRANSICOES[os.s].includes(c.dataset.etapa) ? 'pode' : 'nao-pode');
+        });
+      });
+      card.addEventListener('dragend', () => {
+        card.classList.remove('arrastando');
+        quadro.querySelectorAll('.coluna').forEach((c) => c.classList.remove('pode', 'nao-pode'));
+      });
+      col.append(card);
+    }
+    col.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+    col.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const os = ordens.find((o) => o.n === e.dataTransfer.getData('text/plain'));
+      if (os) mover(os, etapa.k);
+    });
+    quadro.append(col);
+  }
+}
+quadro.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-avancar]');
+  if (!b) return;
+  const os = ordens.find((o) => o.n === b.dataset.avancar);
+  if (os && PROXIMA[os.s]) mover(os, PROXIMA[os.s]);
+});
+function recomecarOs() {
+  ordens = OS_INICIAIS.map((o) => ({ ...o }));
+  desenharQuadro();
+  avisar(retornoOs, '');
+}
+$('#os-recomecar').addEventListener('click', recomecarOs);
+recomecarOs();
+
+// ── PDV ──────────────────────────────────────────────
+const PRODUTOS = [
+  { id: 1, nome: 'Película 3D', preco: 30, estoque: 42 },
+  { id: 2, nome: 'Capinha anti-impacto', preco: 40, estoque: 18 },
+  { id: 3, nome: 'Carregador turbo 25W', preco: 89.9, estoque: 7 },
+  { id: 4, nome: 'Cabo USB-C 1 m', preco: 35, estoque: 23 },
+  { id: 5, nome: 'Fone Bluetooth', preco: 150, estoque: 4 },
+  { id: 6, nome: 'Tela iPhone 11', preco: 350, estoque: 0 },
+];
+let carrinho = [];
+let numeroVenda = 318;
+const retornoPdv = $('#retorno-pdv');
+const pix = $('#pg-pix');
+const din = $('#pg-din');
+
+function desenharProdutos() {
+  const box = $('#produtos');
+  box.innerHTML = '';
+  for (const p of PRODUTOS) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'produto' + (p.estoque === 0 ? ' zerado' : '');
+    b.innerHTML = `<b>${p.nome}</b><span class="mono">${brl(p.preco)}</span><small>${p.estoque === 0 ? 'Sem estoque' : `${p.estoque} em estoque`}</small>`;
+    b.addEventListener('click', () => adicionar(p));
+    box.append(b);
+  }
+}
+function adicionar(p) {
+  if (p.estoque === 0) {
+    avisar(retornoPdv, `${p.nome} sem estoque. Venda perdida registrada: aparece em Relatórios › Faltas.`, 'erro');
+    return;
+  }
+  const item = carrinho.find((i) => i.id === p.id);
+  const qtd = item ? item.qtd : 0;
+  if (qtd + 1 > p.estoque) {
+    avisar(retornoPdv, `Só tem ${p.estoque} de ${p.nome} no estoque.`, 'erro');
+    return;
+  }
+  if (item) item.qtd += 1; else carrinho.push({ id: p.id, qtd: 1 });
+  avisar(retornoPdv, '');
+  atualizarPdv();
+}
+const totalVenda = () => Math.round(carrinho.reduce((s, i) => s + PRODUTOS.find((p) => p.id === i.id).preco * i.qtd, 0) * 100) / 100;
+
+function atualizarPdv() {
+  const lista = $('#itens');
+  lista.innerHTML = '';
+  if (!carrinho.length) lista.innerHTML = '<li class="vazio">Nenhum item ainda. Toque num produto.</li>';
+  for (const i of carrinho) {
+    const p = PRODUTOS.find((x) => x.id === i.id);
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${p.nome}</span>
+      <span class="qtd"><button type="button" aria-label="Tirar um ${p.nome}" data-menos="${p.id}">−</button><span class="mono">${i.qtd}</span><button type="button" aria-label="Mais um ${p.nome}" data-mais="${p.id}">+</button></span>
+      <span class="mono">${brl(p.preco * i.qtd)}</span>`;
+    lista.append(li);
+  }
+  const total = totalVenda();
+  $('#total').textContent = brl(total);
+  const vPix = lerValor(pix.value);
+  const vDin = lerValor(din.value);
+  const sit = $('#situacao');
+  const fin = $('#finalizar');
+  fin.disabled = true;
+  sit.className = 'situacao';
+  if (!total) { sit.textContent = ''; return; }
+  if (vPix > total + 0.001) { sit.textContent = 'O Pix não pode passar do total: troco só sai do dinheiro.'; sit.classList.add('falta'); return; }
+  const pago = Math.round((vPix + vDin) * 100) / 100;
+  if (pago + 0.001 < total) {
+    sit.textContent = `Falta receber ${brl(total - pago)}`;
+    sit.classList.add('falta');
+    return;
+  }
+  const troco = Math.round((pago - total) * 100) / 100;
+  sit.textContent = troco > 0 ? `Troco: ${brl(troco)}` : 'Valor certo, sem troco.';
+  sit.classList.add('troco');
+  fin.disabled = false;
+}
+$('#itens').addEventListener('click', (e) => {
+  const mais = e.target.closest('[data-mais]');
+  const menos = e.target.closest('[data-menos]');
+  if (mais) adicionar(PRODUTOS.find((p) => p.id === Number(mais.dataset.mais)));
+  if (menos) {
+    const item = carrinho.find((i) => i.id === Number(menos.dataset.menos));
+    item.qtd -= 1;
+    if (item.qtd <= 0) carrinho = carrinho.filter((i) => i !== item);
+    atualizarPdv();
+  }
+});
+pix.addEventListener('input', atualizarPdv);
+din.addEventListener('input', atualizarPdv);
+document.querySelectorAll('[data-atalho]').forEach((b) => b.addEventListener('click', () => {
+  const a = b.dataset.atalho;
+  if (a === 'pix') { pix.value = totalVenda().toFixed(2).replace('.', ','); din.value = ''; }
+  else if (a === 'limpar') { pix.value = ''; din.value = ''; }
+  else din.value = a + ',00';
+  atualizarPdv();
+}));
+$('#finalizar').addEventListener('click', () => {
+  const num = `V-2026-${String(numeroVenda).padStart(4, '0')}`;
+  const baixas = carrinho.map((i) => {
+    const p = PRODUTOS.find((x) => x.id === i.id);
+    const antes = p.estoque;
+    p.estoque -= i.qtd;
+    return `${p.nome} ${antes}→${p.estoque}`;
+  });
+  const troco = $('#situacao').textContent.startsWith('Troco') ? ` ${$('#situacao').textContent}.` : '';
+  avisar(retornoPdv, `Venda ${num} finalizada.${troco} Estoque baixado: ${baixas.join(', ')}.`, 'ok');
+  numeroVenda += 1;
+  $('#venda-num').textContent = `V-2026-${String(numeroVenda).padStart(4, '0')}`;
+  carrinho = [];
+  pix.value = ''; din.value = '';
+  desenharProdutos();
+  atualizarPdv();
+});
+desenharProdutos();
+atualizarPdv();
+
+// ── Caixa às cegas ───────────────────────────────────
+const ESPERADO = 150 + 486.5 + 180 + 50 - 250; // 616,50
+$('#form-caixa').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const contado = lerValor($('#contado').value);
+  if (!contado) { $('#contado').focus(); $('#contado').placeholder = 'Informe o valor contado'; return; }
+  const dif = Math.round((contado - ESPERADO) * 100) / 100;
+  $('#r-contado').textContent = brl(contado);
+  $('#r-esperado').textContent = brl(ESPERADO);
+  const rDif = $('#r-dif');
+  rDif.textContent = (dif > 0 ? '+ ' : dif < 0 ? '− ' : '') + brl(Math.abs(dif));
+  rDif.className = 'mono ' + (dif === 0 ? 'cor-ok' : dif < 0 ? 'cor-bad' : 'cor-warn');
+  $('#r-nota').textContent = dif === 0
+    ? 'Bateu certinho. O fechamento fica na auditoria com o nome de quem fechou.'
+    : dif < 0
+      ? 'Faltou dinheiro na gaveta. A diferença fica registrada com o nome de quem fechou.'
+      : 'Sobrou dinheiro na gaveta. Pode ser troco que não foi dado. Fica registrado.';
+  document.querySelectorAll('[data-revela]').forEach((s) => { s.textContent = '+ ' + brl(Number(s.dataset.revela)); s.className = 'mono'; });
+  const linhaEsp = $('#esperado-linha');
+  linhaEsp.textContent = brl(ESPERADO);
+  linhaEsp.className = 'mono';
+  $('#resultado-caixa').hidden = false;
+  $('#fechar-caixa').disabled = true;
+  $('#contado').disabled = true;
+  $('#caixa-reabrir').hidden = false;
+});
+$('#caixa-reabrir').addEventListener('click', () => {
+  document.querySelectorAll('[data-revela]').forEach((s) => { s.textContent = '•••••'; s.className = 'oculto'; });
+  const linhaEsp = $('#esperado-linha');
+  linhaEsp.textContent = 'oculto até a contagem';
+  linhaEsp.className = 'oculto';
+  $('#resultado-caixa').hidden = true;
+  $('#fechar-caixa').disabled = false;
+  $('#contado').disabled = false;
+  $('#contado').value = '';
+  $('#caixa-reabrir').hidden = true;
+});
+
+// ── Ponto ────────────────────────────────────────────
+const BATIDAS = [
+  { rotulo: 'Entrada', botao: 'Registrar entrada', hora: '08:58' },
+  { rotulo: 'Saída para almoço', botao: 'Saída para almoço', hora: '12:31' },
+  { rotulo: 'Volta do almoço', botao: 'Volta do almoço', hora: '13:29' },
+  { rotulo: 'Saída', botao: 'Registrar saída', hora: '18:04' },
+];
+let feitas = 0;
+const minutos = (h) => { const [a, b] = h.split(':').map(Number); return a * 60 + b; };
+const horas = (m) => `${Math.floor(m / 60)}h${String(m % 60).padStart(2, '0')}`;
+function atualizarPonto() {
+  const lista = $('#marcas');
+  lista.innerHTML = '';
+  BATIDAS.slice(0, feitas).forEach((b) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${b.rotulo}</span><b class="mono">${b.hora}</b>`;
+    lista.append(li);
+  });
+  const h = BATIDAS.map((b) => minutos(b.hora));
+  let trab = 0;
+  let alm = 0;
+  if (feitas >= 2) trab += h[1] - h[0];
+  if (feitas >= 3) alm = h[2] - h[1];
+  if (feitas >= 4) trab += h[3] - h[2];
+  $('#trab').textContent = horas(trab);
+  $('#alm').textContent = horas(alm);
+  const bt = $('#batida');
+  if (feitas < BATIDAS.length) {
+    bt.textContent = BATIDAS[feitas].botao;
+    bt.disabled = false;
+  } else {
+    bt.textContent = 'Dia fechado. Bom descanso!';
+    bt.disabled = true;
+  }
+}
+$('#batida').addEventListener('click', () => { if (feitas < BATIDAS.length) { feitas += 1; atualizarPonto(); } });
+$('#ponto-recomecar').addEventListener('click', () => { feitas = 0; atualizarPonto(); });
+atualizarPonto();
+
+// ── Gráfico de faturamento (em escala) ───────────────
+(function grafico() {
+  const meses = [
+    { m: 'mai', v: 14200, c: 9800 }, { m: 'jun', v: 15100, c: 10400 }, { m: 'jul', v: 16800, c: 11100 },
+    { m: 'ago', v: 15900, c: 12200 }, { m: 'set', v: 17600, c: 11900 }, { m: 'out', v: 18420, c: 12860 },
+  ];
+  const svg = $('#grafico');
+  const ns = 'http://www.w3.org/2000/svg';
+  const W = 520, H = 250, esq = 52, dir = 8, topo = 22, base = 28;
+  const max = 35000;
+  const y = (v) => topo + (H - topo - base) * (1 - v / max);
+  const el = (tag, at, texto) => { const e = document.createElementNS(ns, tag); for (const k in at) e.setAttribute(k, at[k]); if (texto != null) e.textContent = texto; svg.append(e); return e; };
+  for (const t of [0, 10000, 20000, 30000]) {
+    el('line', { x1: esq, x2: W - dir, y1: y(t), y2: y(t), class: 'grade' });
+    el('text', { x: esq - 8, y: y(t) + 4, 'text-anchor': 'end' }, t === 0 ? 'R$ 0' : `${t / 1000} mil`);
+  }
+  const faixa = (W - esq - dir) / meses.length;
+  const larg = Math.min(46, faixa * 0.56);
+  meses.forEach((d, i) => {
+    const x = esq + faixa * i + (faixa - larg) / 2;
+    el('rect', { x, y: y(d.v), width: larg, height: y(0) - y(d.v), class: 'barra-v', rx: 3 });
+    el('rect', { x, y: y(d.v + d.c), width: larg, height: y(d.v) - y(d.v + d.c), class: 'barra-c', rx: 3 });
+    el('text', { x: x + larg / 2, y: H - 8, 'text-anchor': 'middle' }, d.m);
+    if (i === meses.length - 1) {
+      const tot = d.v + d.c;
+      el('text', { x: x + larg / 2, y: y(tot) - 7, 'text-anchor': 'middle', class: 'rotulo-topo' }, (tot / 1000).toFixed(1).replace('.', ',') + ' mil');
+    }
+  });
+})();
+
+// ── Celular: o aviso chega de novo de tempos em tempos ─────────────
+(function aviso() {
+  const fone = $('#fone');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const repetir = () => { fone.classList.remove('chegando'); void fone.offsetWidth; fone.classList.add('chegando'); };
+  setTimeout(repetir, 1500);
+  setInterval(repetir, 9000);
+})();
+
+// ── Contato ──────────────────────────────────────────
+(function contato() {
+  const numero = CONTATO.whatsapp.replace(/\D/g, '');
+  const link = $('#whats-link');
+  const span = $('#whats-numero');
+  const copiar = $('#copiar');
+  if (!numero) {
+    link.removeAttribute('target');
+    link.textContent = 'Contato comercial em breve';
+    link.classList.replace('btn-pri', 'btn-sec');
+    span.hidden = true;
+    copiar.hidden = true;
+    return;
+  }
+  link.href = `https://wa.me/${numero}?text=${encodeURIComponent(CONTATO.mensagem)}`;
+  const local = numero.replace(/^55/, '');
+  span.textContent = local.length === 11 ? `(${local.slice(0, 2)}) ${local.slice(2, 7)}-${local.slice(7)}` : numero;
+  copiar.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(span.textContent);
+      $('#copiado').textContent = 'Número copiado.';
+    } catch {
+      const r = document.createRange(); r.selectNodeContents(span);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+      $('#copiado').textContent = 'Número selecionado: use Ctrl+C.';
+    }
+  });
+})();
+</script>
+
+</html>
